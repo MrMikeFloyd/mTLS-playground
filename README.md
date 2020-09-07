@@ -17,6 +17,33 @@ curl -vvv --cacert ca/ca.crt --key client/client.key --cert client/client.crt ht
 
 If all goes well, the server should respond with `200 OK` and a well-known greeting.
 
+## How to break it
+
+### No client cert
+
+With mTLS, identity verification is _mutual_:
+
+* The client verifies the server's identity (as it would with TLS)
+* The server verifies the client's identity (this makes TLS _mTLS_)
+
+Thus, if we let the client connect without providing certificate and key information, the
+connection's going to fail:
+
+```
+curl -vvv --cacert ca/ca.crt https://localhost:3000
+```
+
+### Self signed certs
+
+The example uses a self signed CA cert and works only because we explicitly tell `curl` to use it. When cURLing
+with
+
+```
+curl -vvv --key client/client.key --cert client/client.crt https://localhost:3000
+```
+
+we can see that the connection is being brought down after TLS handshake due to the client rejecting the
+server's self signed cert.
 
 ## [Re]Generating the required certificates
 
@@ -57,4 +84,5 @@ openssl x509 -in client.crt -text -noout
 ## Sources
 
 [1](https://codeburst.io/mutual-tls-authentication-mtls-de-mystified-11fa2a52e9cf) Helped greatly in creating this example.
+
 [2](https://medium.com/@FreedomBen/what-is-mtls-and-how-does-it-work-9dcdbf6c1e41) Helped greatly in understanding mTLS.
